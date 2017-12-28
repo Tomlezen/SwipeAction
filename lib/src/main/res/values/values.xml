@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <declare-styleable name="SwipeLayout">
+        <attr name="swipe_orientation" format="enum">
+            <enum name="horizontal" value="1" />
+            <enum name="vertical" value="0" />
+        </attr>
+        <attr name="swipe_enable" format="boolean"/>
+        <attr name="swipe_behavior" format="string"/>
+        <attr name="swipe_sensitivity" format="float"/>
+        <attr name="swipe_layout_gravity" format="enum">
+            <enum name="start" value="8388611" />
+            <enum name="end" value="8388613" />
+            <!--<enum name="top" value="48" />-->
+            <!--<enum name="bot" value="80" />-->
+        </attr>
+    </declare-styleable>
+
+</resources>

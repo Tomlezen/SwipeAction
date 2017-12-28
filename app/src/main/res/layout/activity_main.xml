@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center">
+
+    <com.tlz.swipeaction.SwipeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/colorPrimary"
+        app:swipe_behavior="com.tlz.swipeaction.SwipeDismissBehavior">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:textColor="@android:color/white"
+            android:gravity="center"
+            android:text="我是上层"
+            android:background="@android:color/holo_red_light" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="40dp"
+            android:textColor="@android:color/white"
+            android:text="我是开始"
+            android:gravity="center"
+            app:swipe_layout_gravity="start"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="40dp"
+            android:textColor="@android:color/white"
+            android:text="我是结束"
+            android:gravity="center"
+            app:swipe_layout_gravity="end"
+            android:layout_marginRight="0dp"/>
+
+    </com.tlz.swipeaction.SwipeLayout>
+
+</LinearLayout>
