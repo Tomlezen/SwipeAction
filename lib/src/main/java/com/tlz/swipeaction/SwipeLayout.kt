@@ -24,21 +24,20 @@ class SwipeLayout(context: Context, attrs: AttributeSet? = null) : ViewGroup(con
 
   val dragHelper: ViewDragHelper
 
-  /** 布局方向. */
-  private var orientation = HORIZONTAL
-  /** 拖动灵敏度. */
+  var orientation = HORIZONTAL
+    private set
   var sensitivity: Float = 1.0f
     set(value) {
       if (value > 0) {
         field = value
       }
     }
+  var calculatedStartMaxDistance = 0
+  var calculatedEndMaxDistance = 0
 
-  /** 内容层. */
   private var contentLayer: View? = null
   private var tempRect = Rect()
   private var interceptingEvents: Boolean = false
-  /** 是否启用. */
   var swipeEnable = true
 
   var behavior: SwipeBehavior? = null
@@ -48,7 +47,7 @@ class SwipeLayout(context: Context, attrs: AttributeSet? = null) : ViewGroup(con
     private var activePointerId = INVALID_POINTER_ID
     //只捕捉内容层的拖拽事件.
     override fun tryCaptureView(child: View?, pointerId: Int): Boolean =
-        activePointerId == INVALID_POINTER_ID && swipeEnable && child == contentLayer
+        activePointerId == INVALID_POINTER_ID && swipeEnable && child == contentLayer && behavior?.tryCaptureView(this@SwipeLayout, child!!, pointerId) ?: true
 
     override fun onViewCaptured(capturedChild: View?, activePointerId: Int) {
       this.activePointerId = activePointerId
@@ -109,7 +108,6 @@ class SwipeLayout(context: Context, attrs: AttributeSet? = null) : ViewGroup(con
       if(contentLayer == null){
         contentLayer = getChildAt(0)
       }
-      //保持内容层与充满parent
       contentLayer?.layoutParams?.apply {
         width = ViewGroup.LayoutParams.MATCH_PARENT
         height = ViewGroup.LayoutParams.MATCH_PARENT
@@ -219,6 +217,13 @@ class SwipeLayout(context: Context, attrs: AttributeSet? = null) : ViewGroup(con
           }
         }
       }
+      if (orientation == HORIZONTAL){
+        calculatedStartMaxDistance = Math.min(width, offsetStart)
+        calculatedEndMaxDistance = Math.min(width, offsetEnd)
+      }else{
+        calculatedStartMaxDistance = Math.min(height, offsetStart)
+        calculatedEndMaxDistance = Math.min(height, offsetEnd)
+      }
     }
   }
 
@@ -240,9 +245,6 @@ class SwipeLayout(context: Context, attrs: AttributeSet? = null) : ViewGroup(con
   override fun checkLayoutParams(p: ViewGroup.LayoutParams): Boolean =
       p is LayoutParams && super.checkLayoutParams(p)
 
-  /**
-   * 触摸点是否在view范围内
-   */
   private fun isPointInChildBounds(child: View, x: Int, y: Int): Boolean {
     ViewGroupUtils.getDescendantRect(this, child, tempRect)
     try {
@@ -262,10 +264,11 @@ class SwipeLayout(context: Context, attrs: AttributeSet? = null) : ViewGroup(con
       MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL ->
         interceptingEvents = false
     }
+    var intercept = false
     if (dispatchEventToHelper) {
-      return dragHelper.shouldInterceptTouchEvent(ev)
+      intercept = dragHelper.shouldInterceptTouchEvent(ev)
     }
-    return false
+    return intercept || behavior?.onInterceptTouchEvent(this, contentLayer, ev) ?: false
   }
 
   @SuppressLint("ClickableViewAccessibility")
@@ -275,15 +278,13 @@ class SwipeLayout(context: Context, attrs: AttributeSet? = null) : ViewGroup(con
   }
 
   companion object {
-    private const val HORIZONTAL = 1
-    private const val VERTICAL = 0
+    const val HORIZONTAL = 1
+    const val VERTICAL = 0
 
     private val WIDGET_PACKAGE_NAME = SwipeLayout::class.java.`package`.name
     private val sConstructors = ThreadLocal<MutableMap<String, Constructor<SwipeBehavior>>>()
 //    private val CONSTRUCTOR_PARAMS = arrayOf(Context::class.java, AttributeSet::class.java)
-    /**
-     * 解析behavior.
-     */
+
     private fun parserBehavior(context: Context, attrs: AttributeSet, name: String): SwipeBehavior? {
       if (name.isNotEmpty()) {
         val fullName = if (name.startsWith(".")) {

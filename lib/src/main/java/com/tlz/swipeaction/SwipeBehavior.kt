@@ -2,6 +2,7 @@ package com.tlz.swipeaction
 
 import android.content.Context
 import android.support.annotation.CallSuper
+import android.support.v4.view.ViewCompat
 import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.View
@@ -10,7 +11,6 @@ import android.view.View
  * Created by tomlezen.
  * Data: 2017/12/28.
  * Time: 10:02.
- * 滑动行为，继承实现各种行为效果.
  */
 abstract class SwipeBehavior {
 
@@ -19,6 +19,12 @@ abstract class SwipeBehavior {
 
   protected var originalCapturedViewLeft: Int = 0
   protected var originalCapturedViewTop: Int = 0
+
+  open fun onInterceptTouchEvent(parent: SwipeLayout, child: View?, ev: MotionEvent?): Boolean = false
+
+  open fun onTouchEvent(parent: SwipeLayout, child: View?, ev: MotionEvent?): Boolean = false
+
+  open fun tryCaptureView(parent: SwipeLayout, child: View, pointerId: Int): Boolean = true
 
   @CallSuper
   open fun onViewCaptured(parent: SwipeLayout, child: View){
@@ -39,5 +45,26 @@ abstract class SwipeBehavior {
   open fun clampViewPositionVertical(parent: SwipeLayout, child: View, top: Int, dy: Int): Int = child.top
 
   open fun onViewPositionChanged(parent: SwipeLayout, child: View, left: Int, top: Int, dx: Int, dy: Int){}
+
+  abstract fun onDetached()
+
+  internal fun fraction(startValue: Float, endValue: Float, value: Float): Float = (value - startValue) / (endValue - startValue)
+
+  internal class SettleRunnable internal constructor(private val parent: SwipeLayout, private val view: View, private val endWithAction: () -> Unit) : Runnable {
+
+    override fun run() {
+      if (parent.dragHelper.continueSettling(true)) {
+        ViewCompat.postOnAnimation(view, this)
+      } else  {
+        endWithAction()
+      }
+    }
+  }
+
+  companion object {
+    val SWIPE_DIRECTION_START_TO_END = 0
+    val SWIPE_DIRECTION_END_TO_START = 1
+    val SWIPE_DIRECTION_ANY = 2
+  }
 
 }

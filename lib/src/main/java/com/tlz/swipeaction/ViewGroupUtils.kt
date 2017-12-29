@@ -17,7 +17,7 @@ object ViewGroupUtils {
   private val sMatrix = ThreadLocal<Matrix>()
   private val sRectF = ThreadLocal<RectF>()
 
-  internal fun offsetDescendantRect(parent: ViewGroup, descendant: View, rect: Rect) {
+  private fun offsetDescendantRect(parent: ViewGroup, descendant: View, rect: Rect) {
     var m: Matrix? = sMatrix.get()
     if (m == null) {
       m = Matrix()

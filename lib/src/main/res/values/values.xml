@@ -20,6 +20,12 @@
             <enum name="endToStart" value="1" />
             <enum name="startToEnd" value="2" />
         </attr>
+        <attr name="swipe_start_max_distance" format="enum|dimension">
+            <enum name="auto" value="0" />
+        </attr>
+        <attr name="swipe_end_max_distance" format="enum|dimension">
+            <enum name="auto" value="-1" />
+        </attr>
     </declare-styleable>
 
 </resources>

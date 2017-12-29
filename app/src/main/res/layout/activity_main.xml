@@ -10,33 +10,75 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@color/colorPrimary"
-        app:swipe_dismiss_direction="any"
+        app:swipe_dismiss_direction="endToStart"
         app:swipe_behavior="com.tlz.swipeaction.SwipeDismissBehavior">
 
         <TextView
             android:layout_width="match_parent"
-            android:layout_height="40dp"
+            android:layout_height="wrap_content"
             android:textColor="@android:color/white"
             android:gravity="center"
-            android:text="我是上层"
+            android:text="top"
+            android:padding="20dp"
             android:background="@android:color/holo_red_light" />
 
         <TextView
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:textColor="@android:color/white"
-            android:text="我是开始"
+            android:text="start"
             android:gravity="center"
             app:swipe_layout_gravity="start"/>
 
         <TextView
             android:layout_width="wrap_content"
-            android:layout_height="40dp"
+            android:layout_height="wrap_content"
             android:textColor="@android:color/white"
-            android:text="我是结束"
+            android:text="end"
             android:gravity="center"
             app:swipe_layout_gravity="end"
             android:layout_marginRight="0dp"/>
+
+    </com.tlz.swipeaction.SwipeLayout>
+
+    <com.tlz.swipeaction.SwipeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/colorPrimary"
+        android:layout_marginTop="20dp"
+        app:swipe_dismiss_direction="any"
+        app:swipe_behavior="com.tlz.swipeaction.SwipeActionBehavior">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="@android:color/white"
+            android:gravity="center"
+            android:text="top"
+            android:padding="20dp"
+            android:background="@android:color/holo_red_light" />
+
+        <TextView
+            android:id="@+id/tv_cancel"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:paddingLeft="10dp"
+            android:paddingRight="10dp"
+            android:textColor="@android:color/white"
+            android:text="cancel"
+            android:gravity="center"
+            app:swipe_layout_gravity="start"/>
+
+        <TextView
+            android:id="@+id/tv_delete"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:paddingLeft="10dp"
+            android:paddingRight="10dp"
+            android:textColor="@android:color/white"
+            android:text="delete"
+            android:gravity="center"
+            app:swipe_layout_gravity="end" />
 
     </com.tlz.swipeaction.SwipeLayout>
 
@@ -47,7 +89,7 @@
         android:layout_marginTop="20dp"
         android:background="@color/colorPrimary"
         app:swipe_orientation="vertical"
-        app:swipe_dismiss_direction="any"
+        app:swipe_dismiss_direction="endToStart"
         app:swipe_behavior="com.tlz.swipeaction.SwipeDismissBehavior">
 
         <TextView
@@ -55,22 +97,22 @@
             android:layout_height="40dp"
             android:textColor="@android:color/white"
             android:gravity="center"
-            android:text="我是上层"
+            android:text="top"
             android:background="@android:color/holo_red_light" />
 
         <TextView
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textColor="@android:color/white"
-            android:text="我是开始"
+            android:text="start"
             android:gravity="center"
             app:swipe_layout_gravity="start"/>
 
         <TextView
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textColor="@android:color/white"
-            android:text="我是结束"
+            android:text="end"
             android:gravity="center"
             app:swipe_layout_gravity="end" />
 

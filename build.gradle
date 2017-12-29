@@ -9,13 +9,25 @@ buildscript {
     dependencies {
         classpath 'com.android.tools.build:gradle:3.0.1'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-
+        classpath "com.novoda:bintray-release:0.5.0"
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
     }
 }
 
 allprojects {
+    ext{
+        repoName = "widget"
+        groupId = "com.tlz.swipeaction"
+        artifactId = "swipeaction"
+        uploadName = "swipeaction"
+        packaging = "aar"
+        desc = ""
+        website = "https://github.com/Tomlezen/SwipeAction"
+        gitUrl = "https://github.com/Tomlezen/SwipeAction"
+        publishVersion = "0.0.1"
+        autoPublish = true
+    }
     repositories {
         google()
         jcenter()
