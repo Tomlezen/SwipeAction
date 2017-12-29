@@ -41,7 +41,7 @@ class SwipeLayout(context: Context, attrs: AttributeSet? = null) : ViewGroup(con
   /** 是否启用. */
   var swipeEnable = true
 
-  var behavior: SwipeBehavior<View>? = null
+  var behavior: SwipeBehavior? = null
 
   private val dragCallback = object : ViewDragHelper.Callback() {
     private val INVALID_POINTER_ID = -1
@@ -190,32 +190,31 @@ class SwipeLayout(context: Context, attrs: AttributeSet? = null) : ViewGroup(con
       val right = width - paddingRight
       val bottom = height - paddingBottom
       var offsetStart = left
-      var offsetEnd = 0
-      (0 until childCount).forEach {
-        val child = getChildAt(it)
-        val childWidth = child.measuredWidth
-        val childHeight = child.measuredHeight
-        val lp = child.layoutParams as LayoutParams
-        if(contentLayer == child){
-          child.layout(left, top, right, bottom)
+      var offsetEnd = paddingBottom
+      (0 until childCount).map { getChildAt(it) }.filter { it.visibility != View.GONE }.forEach {
+        val childWidth = it.measuredWidth
+        val childHeight = it.measuredHeight
+        val lp = it.layoutParams as LayoutParams
+        if(contentLayer == it){
+          it.layout(left, top, right, bottom)
         }else if (orientation == HORIZONTAL) {
           if (lp.gravity == Gravity.START) {
             offsetStart += lp.leftMargin
-            child.layout(offsetStart, top, left + offsetStart + childWidth, bottom)
+            it.layout(Math.min(left + offsetStart, right), top, Math.min(left + offsetStart + childWidth, right), bottom)
             offsetStart += childWidth + lp.rightMargin
           } else {
             offsetEnd += lp.rightMargin
-            child.layout(right - offsetEnd - childWidth, top, right - offsetEnd, bottom)
+            it.layout(Math.max(right - offsetEnd - childWidth, left), top, Math.max(right - offsetEnd, left), bottom)
             offsetEnd += childWidth + lp.leftMargin
           }
         } else {
           if (lp.gravity == Gravity.START) {
             offsetStart += lp.topMargin
-            child.layout(left, top, right, top + offsetStart + childHeight)
+            it.layout(left, top, Math.min(right + offsetStart, bottom), Math.min(top + offsetStart + childHeight, bottom))
             offsetStart += childHeight + lp.bottomMargin
           } else {
             offsetEnd += lp.bottomMargin
-            child.layout(left, bottom + offsetEnd + childHeight, right, bottom + offsetEnd)
+            it.layout(left, Math.max(bottom - offsetEnd - childHeight, top), right, Math.max(bottom - offsetEnd, top))
             offsetEnd += childHeight + lp.topMargin
           }
         }
@@ -280,12 +279,12 @@ class SwipeLayout(context: Context, attrs: AttributeSet? = null) : ViewGroup(con
     private const val VERTICAL = 0
 
     private val WIDGET_PACKAGE_NAME = SwipeLayout::class.java.`package`.name
-    private val sConstructors = ThreadLocal<MutableMap<String, Constructor<SwipeBehavior<View>>>>()
-    private val CONSTRUCTOR_PARAMS = arrayOf(Context::class.java, AttributeSet::class.java)
+    private val sConstructors = ThreadLocal<MutableMap<String, Constructor<SwipeBehavior>>>()
+//    private val CONSTRUCTOR_PARAMS = arrayOf(Context::class.java, AttributeSet::class.java)
     /**
      * 解析behavior.
      */
-    private fun parserBehavior(context: Context, attrs: AttributeSet, name: String): SwipeBehavior<View>? {
+    private fun parserBehavior(context: Context, attrs: AttributeSet, name: String): SwipeBehavior? {
       if (name.isNotEmpty()) {
         val fullName = if (name.startsWith(".")) {
           context.packageName + name
@@ -295,19 +294,19 @@ class SwipeLayout(context: Context, attrs: AttributeSet? = null) : ViewGroup(con
           if (!TextUtils.isEmpty(WIDGET_PACKAGE_NAME)) WIDGET_PACKAGE_NAME + '.' + name else name
         }
         try {
-          var constructors: MutableMap<String, Constructor<SwipeBehavior<View>>>? = sConstructors.get()
+          var constructors: MutableMap<String, Constructor<SwipeBehavior>>? = sConstructors.get()
           if (constructors == null) {
             constructors = HashMap()
             sConstructors.set(constructors)
           }
-          var c: Constructor<SwipeBehavior<View>>? = constructors[fullName]
+          var c: Constructor<SwipeBehavior>? = constructors[fullName]
           if (c == null) {
-            val clazz = Class.forName(fullName, true, context.classLoader) as Class<SwipeBehavior<View>>
-            c = clazz.getConstructor()
-            c!!.isAccessible = true
+            val clazz = Class.forName(fullName, true, context.classLoader) as Class<SwipeBehavior>
+            c = clazz.getConstructor(Context::class.java, AttributeSet::class.java)
+            c?.isAccessible = true
             constructors.put(fullName, c)
           }
-          return c.newInstance()
+          return c?.newInstance(context, attrs)
         } catch (e: Exception) {
           throw RuntimeException("Could not inflate Behavior subclass " + fullName, e)
         }

@@ -1,6 +1,7 @@
 package com.tlz.swipeaction_example
 
 import android.os.Bundle
+import android.support.design.widget.SwipeDismissBehavior
 import android.support.v7.app.AppCompatActivity
 import android.widget.FrameLayout
 

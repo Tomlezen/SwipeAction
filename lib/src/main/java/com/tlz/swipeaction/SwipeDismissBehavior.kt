@@ -1,22 +1,44 @@
 package com.tlz.swipeaction
 
+import android.content.Context
+import android.support.annotation.Keep
 import android.support.v4.math.MathUtils.clamp
 import android.support.v4.view.ViewCompat
+import android.util.AttributeSet
 import android.view.View
 
 /**
  * Created by tomlezen.
  * Data: 2017/12/28.
  * Time: 18:43.
+ * 滑动消失.
+ * (参考material库的iSwipeDismissBehavor实现)
  */
-class SwipeDismissBehavior: SwipeBehavior<View>() {
+@Keep
+class SwipeDismissBehavior: SwipeBehavior {
 
   var dismissListener: OnDismissListener? = null
 
   var swipeDirection = SWIPE_DIRECTION_END_TO_START
   var dragDismissThreshold = DEFAULT_DRAG_DISMISS_THRESHOLD
+    set(value) {
+      field = clamp(value, 0f, 1f)
+    }
   var alphaStartSwipeDistance = DEFAULT_ALPHA_START_DISTANCE
+    set(value) {
+      field = clamp(value, 0f, 1f)
+    }
   var alphaEndSwipeDistance = DEFAULT_ALPHA_END_DISTANCE
+    set(value) {
+      field = clamp(value, 0f, 1f)
+    }
+
+  constructor(): super()
+  constructor(context: Context, attrs: AttributeSet): super(context, attrs){
+    val typeArray = context.obtainStyledAttributes(attrs, R.styleable.SwipeLayout)
+    swipeDirection = typeArray.getInteger(R.styleable.SwipeLayout_swipe_dismiss_direction, swipeDirection)
+    typeArray.recycle()
+  }
 
   override fun onViewDragStateChanged(parent: SwipeLayout, child: View, state: Int) {
     dismissListener?.onDragStateChanged(state)
@@ -25,13 +47,13 @@ class SwipeDismissBehavior: SwipeBehavior<View>() {
   override fun onViewPositionChanged(parent: SwipeLayout, child: View, left: Int, top: Int, dx: Int, dy: Int) {
     val startAlphaDistance = originalCapturedViewLeft + child.width * alphaStartSwipeDistance
     val endAlphaDistance = originalCapturedViewLeft + child.width * alphaEndSwipeDistance
-
+    val plusLeft = Math.abs(left)
     when {
-      left <= startAlphaDistance -> child.alpha = 1f
-      left >= endAlphaDistance -> child.alpha = 0f
+      plusLeft <= startAlphaDistance -> child.alpha = 1f
+      plusLeft >= endAlphaDistance -> child.alpha = 0f
       else -> {
-        val distance = fraction(startAlphaDistance, endAlphaDistance, left.toFloat())
-        child.alpha = clamp(0f, 1f - distance, 1f)
+        val distance = fraction(startAlphaDistance, endAlphaDistance, plusLeft.toFloat())
+        child.alpha = clamp(1f - distance, 0f, 1f)
       }
     }
   }
@@ -100,7 +122,7 @@ class SwipeDismissBehavior: SwipeBehavior<View>() {
       max = originalCapturedViewLeft + child.width
     }
 
-    return clamp(min, left, max)
+    return clamp(left, min, max)
   }
 
   private fun fraction(startValue: Float, endValue: Float, value: Float): Float =
