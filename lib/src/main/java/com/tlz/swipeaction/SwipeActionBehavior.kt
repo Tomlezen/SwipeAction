@@ -1,6 +1,9 @@
 package com.tlz.swipeaction
 
+import android.animation.Animator
+import android.animation.ValueAnimator
 import android.content.Context
+import android.support.annotation.Keep
 import android.support.v4.math.MathUtils
 import android.support.v4.math.MathUtils.clamp
 import android.support.v4.view.ViewCompat
@@ -13,6 +16,7 @@ import android.view.View
  * Data: 2017/12/29.
  * Time: 16:45.
  */
+@Keep
 class SwipeActionBehavior : SwipeBehavior {
 
   var swipeDirection = SWIPE_DIRECTION_END_TO_START
@@ -34,9 +38,14 @@ class SwipeActionBehavior : SwipeBehavior {
       field = clamp(value, .3f, .8f)
     }
 
+  private var capturedView: View? = null
   private var calculatedMaxStartSwipeDistance = 0
   private var calculatedMaxEndSwipeDistance = 0
   private var isFixed = false
+  private var isRecovery = false
+  private var isDetached = false
+
+  var listener: OnActionListener? = null
 
   constructor() : super()
   constructor(context: Context, attrs: AttributeSet) : super(context, attrs) {
@@ -59,31 +68,37 @@ class SwipeActionBehavior : SwipeBehavior {
     typeArray.recycle()
   }
 
-  override fun onInterceptTouchEvent(parent: SwipeLayout, child: View?, ev: MotionEvent?): Boolean {
-    if(isFixed && ev?.action == MotionEvent.ACTION_UP){
-      recover(parent, child!!)
-    }
-    return !isFixed
-  }
-
-  override fun tryCaptureView(parent: SwipeLayout, child: View, pointerId: Int): Boolean = !isFixed
-
-  override fun onViewCaptured(parent: SwipeLayout, child: View) {
-    super.onViewCaptured(parent, child)
+  override fun onLayout(view: SwipeLayout) {
     calculatedMaxStartSwipeDistance = if (maxStartSwipeDistance == AUTO) {
-      parent.calculatedStartMaxDistance
+      view.calculatedStartMaxDistance
     } else {
       maxStartSwipeDistance
     }
     calculatedMaxEndSwipeDistance = if (maxEndSwipeDistance == AUTO) {
-      parent.calculatedEndMaxDistance
+      view.calculatedEndMaxDistance
     } else {
       maxEndSwipeDistance
     }
   }
 
-  override fun onViewDragStateChanged(parent: SwipeLayout, child: View, state: Int) {
+  override fun onInterceptTouchEvent(parent: SwipeLayout, child: View?, ev: MotionEvent?): Boolean {
+    if (isFixed && !isRecovery && parent.swipeEnable) {
+      recover()
+    }
+    return isFixed
+  }
 
+  override fun tryCaptureView(parent: SwipeLayout, child: View, pointerId: Int): Boolean {
+    return !isFixed
+  }
+
+  override fun onViewCaptured(parent: SwipeLayout, child: View) {
+    super.onViewCaptured(parent, child)
+    capturedView = child
+  }
+
+  override fun onViewDragStateChanged(parent: SwipeLayout, child: View, state: Int) {
+    listener?.onDragStateChanged(state)
   }
 
   override fun onViewReleased(parent: SwipeLayout, child: View, xvel: Float, yvel: Float) {
@@ -109,23 +124,24 @@ class SwipeActionBehavior : SwipeBehavior {
       continueSettling = parent.dragHelper.settleCapturedViewAt(child.left, targetTop)
     }
 
+    val isStart = child.top > 0 || child.left > 0
     if (continueSettling) {
       ViewCompat.postOnAnimation(child, SettleRunnable(parent, child, {
         if (isFixed) {
-          //
+          callbackOpenedEvent(isStart)
         }
       }))
     } else if (isFixed) {
-//      dismissListener?.onDismiss(child)
+      callbackOpenedEvent(isStart)
     }
   }
 
   override fun getViewHorizontalDragRange(parent: SwipeLayout, child: View): Int =
       if (parent.orientation == SwipeLayout.HORIZONTAL) {
         if (swipeDirection == SWIPE_DIRECTION_END_TO_START) {
-          maxEndSwipeDistance
+          calculatedMaxEndSwipeDistance
         } else {
-          maxStartSwipeDistance
+          calculatedMaxStartSwipeDistance
         }
       } else {
         0
@@ -134,9 +150,9 @@ class SwipeActionBehavior : SwipeBehavior {
   override fun getViewVerticalDragRange(parent: SwipeLayout, child: View): Int =
       if (parent.orientation == SwipeLayout.VERTICAL) {
         if (swipeDirection == SWIPE_DIRECTION_END_TO_START) {
-          maxEndSwipeDistance
+          calculatedMaxEndSwipeDistance
         } else {
-          maxStartSwipeDistance
+          calculatedMaxStartSwipeDistance
         }
       } else {
         0
@@ -202,7 +218,23 @@ class SwipeActionBehavior : SwipeBehavior {
   }
 
   override fun onViewPositionChanged(parent: SwipeLayout, child: View, left: Int, top: Int, dx: Int, dy: Int) {
-
+    listener?.let {
+      val isStart = child.left > 0 || child.top > 0
+      val percent = if (isStart) {
+        if (parent.orientation == SwipeLayout.HORIZONTAL) {
+          child.left / calculatedMaxStartSwipeDistance.toFloat()
+        } else {
+          child.top / calculatedMaxStartSwipeDistance.toFloat()
+        }
+      } else {
+        if (parent.orientation == SwipeLayout.HORIZONTAL) {
+          child.left / calculatedMaxEndSwipeDistance.toFloat()
+        } else {
+          child.top / calculatedMaxEndSwipeDistance.toFloat()
+        }
+      }
+      it.onDragPercent(if (isStart) START else END, Math.abs(percent * 100).toInt())
+    }
   }
 
   private fun shouldHorizontalFixed(child: View, xvel: Float): Boolean {
@@ -243,25 +275,83 @@ class SwipeActionBehavior : SwipeBehavior {
     return false
   }
 
-  private fun recover(parent: SwipeLayout, child: View) {
-//    ViewCompat.postOnAnimation(child, {
-//      child.scrollTo(child.left - 0, child.top - 0)
-//    })
-//    ViewCompat.postOnAnimation(child, {
-//      if (child.left == 0 && child.top == 0) {
-//        isFixed = false
-//      }
-//    })
-    isFixed = false
+  private fun recover(child: View) {
+    val isStart = child.top > 0 || child.left > 0
+    ValueAnimator.ofFloat(0f, 1f).apply {
+      duration = DEFAULT_ANIMATOR_DURATION
+      addUpdateListener {
+        if (!isDetached) {
+          val value = animatedValue as Float
+          ViewCompat.offsetLeftAndRight(child, ((0 - child.left) * value).toInt())
+          ViewCompat.offsetTopAndBottom(child, ((0 - child.top) * value).toInt())
+        }
+      }
+      animatorListener.isStart = isStart
+      addListener(animatorListener)
+    }.start()
+  }
+
+  /**
+   * revert to the original location.
+   */
+  fun recover() {
+    if (isFixed && !isRecovery && capturedView?.isShown == true) {
+      recover(capturedView!!)
+    }
+  }
+
+  private val animatorListener = object : Animator.AnimatorListener {
+
+    var isStart = false
+
+    override fun onAnimationRepeat(animation: Animator?) {
+    }
+
+    override fun onAnimationEnd(animation: Animator?) {
+      isFixed = false
+      isRecovery = false
+      listener?.let {
+        if (isStart) {
+          it.onClosed(START)
+        } else {
+          it.onClosed(END)
+        }
+      }
+    }
+
+    override fun onAnimationCancel(animation: Animator?) {
+    }
+
+    override fun onAnimationStart(animation: Animator?) {
+      isRecovery = true
+    }
   }
 
   override fun onDetached() {
+    isDetached = true
+    listener = null
+  }
 
+  private fun callbackOpenedEvent(isStart: Boolean) {
+    listener?.let {
+      if (isStart) {
+        it.onOpen(START)
+      } else {
+        it.onOpen(END)
+      }
+    }
+  }
+
+  interface OnActionListener : Listener {
+    fun onDragPercent(direction: Int, percent: Int)
+    fun onOpen(direction: Int)
+    fun onClosed(direction: Int)
   }
 
   companion object {
     const val AUTO = -1
-    private val DEFAULT_DRAG_FIXED_THRESHOLD = .5f
+    private const val DEFAULT_DRAG_FIXED_THRESHOLD = .5f
+    private const val DEFAULT_ANIMATOR_DURATION = 500L
   }
 
 }

@@ -20,7 +20,7 @@ import java.util.*
  * Data: 2017/12/28.
  * Time: 9:48.
  */
-class SwipeLayout(context: Context, attrs: AttributeSet? = null) : ViewGroup(context, attrs) {
+open class SwipeLayout(context: Context, attrs: AttributeSet? = null) : ViewGroup(context, attrs) {
 
   val dragHelper: ViewDragHelper
 
@@ -45,7 +45,6 @@ class SwipeLayout(context: Context, attrs: AttributeSet? = null) : ViewGroup(con
   private val dragCallback = object : ViewDragHelper.Callback() {
     private val INVALID_POINTER_ID = -1
     private var activePointerId = INVALID_POINTER_ID
-    //只捕捉内容层的拖拽事件.
     override fun tryCaptureView(child: View?, pointerId: Int): Boolean =
         activePointerId == INVALID_POINTER_ID && swipeEnable && child == contentLayer && behavior?.tryCaptureView(this@SwipeLayout, child!!, pointerId) ?: true
 
@@ -168,6 +167,7 @@ class SwipeLayout(context: Context, attrs: AttributeSet? = null) : ViewGroup(con
     } else {
       super.onMeasure(widthMeasureSpec, heightMeasureSpec)
     }
+    behavior?.onMeasure(this)
   }
 
   override fun addView(child: View?, params: ViewGroup.LayoutParams?) {
@@ -224,6 +224,7 @@ class SwipeLayout(context: Context, attrs: AttributeSet? = null) : ViewGroup(con
         calculatedStartMaxDistance = Math.min(height, offsetStart)
         calculatedEndMaxDistance = Math.min(height, offsetEnd)
       }
+      behavior?.onLayout(this)
     }
   }
 
@@ -268,7 +269,7 @@ class SwipeLayout(context: Context, attrs: AttributeSet? = null) : ViewGroup(con
     if (dispatchEventToHelper) {
       intercept = dragHelper.shouldInterceptTouchEvent(ev)
     }
-    return intercept || behavior?.onInterceptTouchEvent(this, contentLayer, ev) ?: false
+    return intercept || (dispatchEventToHelper && behavior?.onInterceptTouchEvent(this, contentLayer, ev) ?: false)
   }
 
   @SuppressLint("ClickableViewAccessibility")
@@ -277,13 +278,24 @@ class SwipeLayout(context: Context, attrs: AttributeSet? = null) : ViewGroup(con
     return true
   }
 
+  override fun onAttachedToWindow() {
+    behavior?.onAttached()
+    super.onAttachedToWindow()
+  }
+
+  override fun onDetachedFromWindow() {
+    behavior?.onDetached()
+    super.onDetachedFromWindow()
+  }
+
+  override fun setOnClickListener(l: OnClickListener?) {}
+
   companion object {
     const val HORIZONTAL = 1
     const val VERTICAL = 0
 
     private val WIDGET_PACKAGE_NAME = SwipeLayout::class.java.`package`.name
     private val sConstructors = ThreadLocal<MutableMap<String, Constructor<SwipeBehavior>>>()
-//    private val CONSTRUCTOR_PARAMS = arrayOf(Context::class.java, AttributeSet::class.java)
 
     private fun parserBehavior(context: Context, attrs: AttributeSet, name: String): SwipeBehavior? {
       if (name.isNotEmpty()) {

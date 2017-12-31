@@ -7,10 +7,11 @@
     android:gravity="center">
 
     <com.tlz.swipeaction.SwipeLayout
+        android:id="@+id/sl_dismiss_behavior"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@color/colorPrimary"
-        app:swipe_dismiss_direction="endToStart"
+        app:swipe_dismiss_direction="any"
         app:swipe_behavior="com.tlz.swipeaction.SwipeDismissBehavior">
 
         <TextView
@@ -18,43 +19,30 @@
             android:layout_height="wrap_content"
             android:textColor="@android:color/white"
             android:gravity="center"
-            android:text="top"
+            android:text="Swipe dismiss"
             android:padding="20dp"
             android:background="@android:color/holo_red_light" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:textColor="@android:color/white"
-            android:text="start"
-            android:gravity="center"
-            app:swipe_layout_gravity="start"/>
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textColor="@android:color/white"
-            android:text="end"
-            android:gravity="center"
-            app:swipe_layout_gravity="end"
-            android:layout_marginRight="0dp"/>
 
     </com.tlz.swipeaction.SwipeLayout>
 
     <com.tlz.swipeaction.SwipeLayout
+        android:id="@+id/sl_action_behavior"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@color/colorPrimary"
         android:layout_marginTop="20dp"
         app:swipe_dismiss_direction="any"
+        app:swipe_end_max_distance="auto"
+        app:swipe_start_max_distance="auto"
         app:swipe_behavior="com.tlz.swipeaction.SwipeActionBehavior">
 
         <TextView
+            android:id="@+id/tv_content"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textColor="@android:color/white"
             android:gravity="center"
-            android:text="top"
+            android:text="content"
             android:padding="20dp"
             android:background="@android:color/holo_red_light" />
 
@@ -97,7 +85,7 @@
             android:layout_height="40dp"
             android:textColor="@android:color/white"
             android:gravity="center"
-            android:text="top"
+            android:text="Swipe from bottom to top dismiss"
             android:background="@android:color/holo_red_light" />
 
         <TextView

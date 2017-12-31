@@ -15,7 +15,7 @@ import android.view.View
 @Keep
 class SwipeDismissBehavior : SwipeBehavior {
 
-  var dismissListener: OnDismissListener? = null
+  var listener: OnDismissListener? = null
 
   var swipeDirection = SWIPE_DIRECTION_END_TO_START
   var dragDismissThreshold = DEFAULT_DRAG_DISMISS_THRESHOLD
@@ -39,7 +39,7 @@ class SwipeDismissBehavior : SwipeBehavior {
   }
 
   override fun onViewDragStateChanged(parent: SwipeLayout, child: View, state: Int) {
-    dismissListener?.onDragStateChanged(state)
+    listener?.onDragStateChanged(state)
   }
 
   override fun onViewPositionChanged(parent: SwipeLayout, child: View, left: Int, top: Int, dx: Int, dy: Int) {
@@ -101,16 +101,16 @@ class SwipeDismissBehavior : SwipeBehavior {
     if (continueSettling) {
       ViewCompat.postOnAnimation(child, SettleRunnable(parent, child, {
         if(dismiss){
-          dismissListener?.onDismiss(child)
+          listener?.onDismiss(child)
         }
       }))
     } else if (dismiss) {
-      dismissListener?.onDismiss(child)
+      listener?.onDismiss(child)
     }
   }
 
   override fun onDetached() {
-    dismissListener = null
+    listener = null
   }
 
   private fun shouldHorizontalDismiss(child: View, xvel: Float): Boolean {
@@ -210,18 +210,14 @@ class SwipeDismissBehavior : SwipeBehavior {
     }
   }
 
-  interface OnDismissListener {
-
+  interface OnDismissListener: Listener {
     fun onDismiss(view: View)
-
-    fun onDragStateChanged(state: Int)
-
   }
 
   companion object {
-    private val DEFAULT_DRAG_DISMISS_THRESHOLD = 0.5f
-    private val DEFAULT_ALPHA_START_DISTANCE = 0f
-    private val DEFAULT_ALPHA_END_DISTANCE = DEFAULT_DRAG_DISMISS_THRESHOLD
+    private const val DEFAULT_DRAG_DISMISS_THRESHOLD = 0.5f
+    private const val DEFAULT_ALPHA_START_DISTANCE = 0f
+    private const val DEFAULT_ALPHA_END_DISTANCE = DEFAULT_DRAG_DISMISS_THRESHOLD
   }
 
 }

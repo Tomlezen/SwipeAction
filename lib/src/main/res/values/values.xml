@@ -12,8 +12,6 @@
         <attr name="swipe_layout_gravity" format="enum">
             <enum name="start" value="8388611" />
             <enum name="end" value="8388613" />
-            <!--<enum name="top" value="48" />-->
-            <!--<enum name="bot" value="80" />-->
         </attr>
         <attr name="swipe_dismiss_direction" format="enum">
             <enum name="any" value="2" />
@@ -21,7 +19,7 @@
             <enum name="startToEnd" value="2" />
         </attr>
         <attr name="swipe_start_max_distance" format="enum|dimension">
-            <enum name="auto" value="0" />
+            <enum name="auto" value="-1" />
         </attr>
         <attr name="swipe_end_max_distance" format="enum|dimension">
             <enum name="auto" value="-1" />

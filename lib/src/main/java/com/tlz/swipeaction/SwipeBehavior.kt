@@ -20,9 +20,11 @@ abstract class SwipeBehavior {
   protected var originalCapturedViewLeft: Int = 0
   protected var originalCapturedViewTop: Int = 0
 
-  open fun onInterceptTouchEvent(parent: SwipeLayout, child: View?, ev: MotionEvent?): Boolean = false
+  open fun onMeasure(view: SwipeLayout){}
 
-  open fun onTouchEvent(parent: SwipeLayout, child: View?, ev: MotionEvent?): Boolean = false
+  open fun onLayout(view: SwipeLayout){}
+
+  open fun onInterceptTouchEvent(parent: SwipeLayout, child: View?, ev: MotionEvent?): Boolean = false
 
   open fun tryCaptureView(parent: SwipeLayout, child: View, pointerId: Int): Boolean = true
 
@@ -46,7 +48,9 @@ abstract class SwipeBehavior {
 
   open fun onViewPositionChanged(parent: SwipeLayout, child: View, left: Int, top: Int, dx: Int, dy: Int){}
 
-  abstract fun onDetached()
+  open fun onAttached(){}
+
+  open fun onDetached(){}
 
   internal fun fraction(startValue: Float, endValue: Float, value: Float): Float = (value - startValue) / (endValue - startValue)
 
@@ -61,10 +65,17 @@ abstract class SwipeBehavior {
     }
   }
 
+  interface Listener{
+    fun onDragStateChanged(state: Int)
+  }
+
   companion object {
-    val SWIPE_DIRECTION_START_TO_END = 0
-    val SWIPE_DIRECTION_END_TO_START = 1
-    val SWIPE_DIRECTION_ANY = 2
+    const val SWIPE_DIRECTION_START_TO_END = 0
+    const val SWIPE_DIRECTION_END_TO_START = 1
+    const val SWIPE_DIRECTION_ANY = 2
+
+    const val START = 0
+    const val END = 1
   }
 
 }
