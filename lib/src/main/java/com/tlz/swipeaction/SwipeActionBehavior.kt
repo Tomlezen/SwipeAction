@@ -3,7 +3,6 @@ package com.tlz.swipeaction
 import android.animation.Animator
 import android.animation.ValueAnimator
 import android.content.Context
-import android.support.annotation.Keep
 import android.support.v4.math.MathUtils
 import android.support.v4.math.MathUtils.clamp
 import android.support.v4.view.ViewCompat
@@ -16,7 +15,6 @@ import android.view.View
  * Data: 2017/12/29.
  * Time: 16:45.
  */
-@Keep
 class SwipeActionBehavior : SwipeBehavior {
 
   var swipeDirection = SWIPE_DIRECTION_END_TO_START
@@ -88,9 +86,7 @@ class SwipeActionBehavior : SwipeBehavior {
     return isFixed
   }
 
-  override fun tryCaptureView(parent: SwipeLayout, child: View, pointerId: Int): Boolean {
-    return !isFixed
-  }
+  override fun tryCaptureView(parent: SwipeLayout, child: View, pointerId: Int): Boolean = !isFixed
 
   override fun onViewCaptured(parent: SwipeLayout, child: View) {
     super.onViewCaptured(parent, child)
@@ -327,8 +323,15 @@ class SwipeActionBehavior : SwipeBehavior {
     }
   }
 
+  override fun onAttached() {
+    isDetached = false
+  }
+
   override fun onDetached() {
+    capturedView = null
     isDetached = true
+    isFixed = false
+    isRecovery = false
     listener = null
   }
 

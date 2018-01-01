@@ -55,6 +55,14 @@ buildscript{
     }
 }
 
+//生成jar文件
+task makeJar(type: Copy){
+    from('build/intermediates/bundles/release/')
+    into('build/libs/')
+    include('classes.jar')
+    rename ('classes.jar', 'swipeaction.jar')
+}
+
 publish {
     artifactId = parent.ext.artifactId
     autoPublish = parent.ext.autoPublish

@@ -274,7 +274,9 @@ open class SwipeLayout(context: Context, attrs: AttributeSet? = null) : ViewGrou
 
   @SuppressLint("ClickableViewAccessibility")
   override fun onTouchEvent(event: MotionEvent?): Boolean {
-    dragHelper.processTouchEvent(event)
+    if(event?.actionMasked != MotionEvent.ACTION_DOWN){
+      dragHelper.processTouchEvent(event)
+    }
     return true
   }
 

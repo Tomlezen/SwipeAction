@@ -25,7 +25,7 @@ allprojects {
         desc = ""
         website = "https://github.com/Tomlezen/SwipeAction"
         gitUrl = "https://github.com/Tomlezen/SwipeAction"
-        publishVersion = "0.0.1"
+        publishVersion = "0.0.2"
         autoPublish = true
     }
     repositories {

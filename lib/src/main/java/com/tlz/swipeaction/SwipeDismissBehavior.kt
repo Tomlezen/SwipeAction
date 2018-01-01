@@ -12,7 +12,6 @@ import android.view.View
  * Data: 2017/12/28.
  * Time: 18:43.
  */
-@Keep
 class SwipeDismissBehavior : SwipeBehavior {
 
   var listener: OnDismissListener? = null

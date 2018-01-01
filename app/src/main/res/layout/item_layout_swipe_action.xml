@@ -1,6 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout
-    xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent"
-    android:layout_height="match_parent">
+<com.tlz.swipeaction.SwipeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/sl_action"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    app:swipe_behavior="com.tlz.swipeaction.SwipeActionBehavior"
+    app:swipe_enable="true"
+    app:swipe_dismiss_direction="endToStart">
 
-</android.support.constraint.ConstraintLayout>
+    <TextView
+        android:id="@+id/tv_content"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:background="@android:color/white"/>
+
+    <TextView
+        android:id="@+id/tv_delete"
+        android:layout_width="45dp"
+        android:layout_height="45dp"
+        android:textColor="@android:color/white"
+        android:text="delete"
+        android:gravity="center"
+        android:background="@android:color/holo_red_light"
+        app:swipe_layout_gravity="end" />
+
+</com.tlz.swipeaction.SwipeLayout>
