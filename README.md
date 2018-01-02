@@ -1,3 +1,8 @@
+## Gradle
+
+```
+com.tlz.swipeaction:swipeaction:0.0.2
+```
 ## Groguard
 
 ```
