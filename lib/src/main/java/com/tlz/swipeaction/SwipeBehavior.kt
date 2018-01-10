@@ -22,7 +22,7 @@ abstract class SwipeBehavior {
 
   open fun onMeasure(view: SwipeLayout){}
 
-  open fun onLayout(view: SwipeLayout){}
+  open fun onLayout(changed: Boolean, view: SwipeLayout){}
 
   open fun onInterceptTouchEvent(parent: SwipeLayout, child: View?, ev: MotionEvent?): Boolean = false
 

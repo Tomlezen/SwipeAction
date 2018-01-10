@@ -6,9 +6,15 @@
             <enum name="horizontal" value="1" />
             <enum name="vertical" value="0" />
         </attr>
-        <attr name="swipe_enable" format="boolean"/>
-        <attr name="swipe_behavior" format="string"/>
-        <attr name="swipe_sensitivity" format="float"/>
+        <attr name="swipe_mode" format="enum">
+            <enum name="drawer" value="0" />
+            <enum name="smooth" value="1" />
+            <enum name="parallax" value="2" />
+        </attr>
+        <attr name="swipe_parallax_multiplier" format="float" />
+        <attr name="swipe_enable" format="boolean" />
+        <attr name="swipe_behavior" format="string" />
+        <attr name="swipe_sensitivity" format="float" />
         <attr name="swipe_layout_gravity" format="enum">
             <enum name="start" value="8388611" />
             <enum name="end" value="8388613" />

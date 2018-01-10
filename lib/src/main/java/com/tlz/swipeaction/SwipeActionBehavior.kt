@@ -66,16 +66,18 @@ class SwipeActionBehavior : SwipeBehavior {
     typeArray.recycle()
   }
 
-  override fun onLayout(view: SwipeLayout) {
-    calculatedMaxStartSwipeDistance = if (maxStartSwipeDistance == AUTO) {
-      view.calculatedStartMaxDistance
-    } else {
-      maxStartSwipeDistance
-    }
-    calculatedMaxEndSwipeDistance = if (maxEndSwipeDistance == AUTO) {
-      view.calculatedEndMaxDistance
-    } else {
-      maxEndSwipeDistance
+  override fun onLayout(changed: Boolean, view: SwipeLayout) {
+    if (changed) {
+      calculatedMaxStartSwipeDistance = if (maxStartSwipeDistance == AUTO) {
+        view.calculatedStartMaxDistance
+      } else {
+        maxStartSwipeDistance
+      }
+      calculatedMaxEndSwipeDistance = if (maxEndSwipeDistance == AUTO) {
+        view.calculatedEndMaxDistance
+      } else {
+        maxEndSwipeDistance
+      }
     }
   }
 

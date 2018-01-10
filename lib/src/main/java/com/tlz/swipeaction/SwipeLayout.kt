@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Rect
 import android.os.Build
+import android.support.v4.math.MathUtils.clamp
 import android.support.v4.widget.ViewDragHelper
 import android.text.TextUtils
 import android.util.AttributeSet
@@ -20,12 +21,18 @@ import java.util.*
  * Data: 2017/12/28.
  * Time: 9:48.
  */
-open class SwipeLayout(context: Context, attrs: AttributeSet? = null) : ViewGroup(context, attrs) {
+class SwipeLayout(context: Context, attrs: AttributeSet? = null) : ViewGroup(context, attrs) {
 
   val dragHelper: ViewDragHelper
 
   var orientation = HORIZONTAL
     private set
+  var mode = DRAWER
+    private set
+  var parallaxMultiplier = DEF_PARALLAX_MULTIPLIER
+    private set(value){
+      field = clamp(value, 0f, 1f)
+    }
   var sensitivity: Float = 1.0f
     set(value) {
       if (value > 0) {
@@ -84,6 +91,8 @@ open class SwipeLayout(context: Context, attrs: AttributeSet? = null) : ViewGrou
     attrs?.let {
       val typeArray = context.obtainStyledAttributes(it, R.styleable.SwipeLayout)
       orientation = typeArray.getInteger(R.styleable.SwipeLayout_swipe_orientation, orientation)
+      mode = typeArray.getInteger(R.styleable.SwipeLayout_swipe_mode, mode)
+      parallaxMultiplier = typeArray.getFloat(R.styleable.SwipeLayout_swipe_parallax_multiplier, parallaxMultiplier)
       swipeEnable = typeArray.getBoolean(R.styleable.SwipeLayout_swipe_enable, swipeEnable)
       sensitivity = typeArray.getFloat(R.styleable.SwipeLayout_swipe_sensitivity, sensitivity)
       val hasBehavior = typeArray.hasValue(R.styleable.SwipeLayout_swipe_behavior)
@@ -104,7 +113,7 @@ open class SwipeLayout(context: Context, attrs: AttributeSet? = null) : ViewGrou
   override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
     val cCount = childCount
     if (cCount > 0) {
-      if(contentLayer == null){
+      if (contentLayer == null) {
         contentLayer = getChildAt(0)
       }
       contentLayer?.layoutParams?.apply {
@@ -138,12 +147,12 @@ open class SwipeLayout(context: Context, attrs: AttributeSet? = null) : ViewGrou
       maxHeight = Math.max(maxHeight, suggestedMinimumHeight)
       maxWidth = Math.max(maxWidth, suggestedMinimumWidth)
 
-     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-       val drawable = foreground
-       if (drawable != null) {
-         maxHeight = Math.max(maxHeight, drawable.minimumHeight)
-         maxWidth = Math.max(maxWidth, drawable.minimumWidth)
-       }
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+        val drawable = foreground
+        if (drawable != null) {
+          maxHeight = Math.max(maxHeight, drawable.minimumHeight)
+          maxWidth = Math.max(maxWidth, drawable.minimumWidth)
+        }
       }
 
       setMeasuredDimension(View.resolveSizeAndState(maxWidth, widthMeasureSpec, childState), View.resolveSizeAndState(maxHeight, heightMeasureSpec, childState shl View.MEASURED_HEIGHT_STATE_SHIFT))
@@ -181,51 +190,78 @@ open class SwipeLayout(context: Context, attrs: AttributeSet? = null) : ViewGrou
 
   override fun onLayout(changed: Boolean, l: Int, t: Int, r: Int, b: Int) {
     if (changed && childCount > 0) {
-      val height = measuredHeight
-      val width = measuredWidth
-      val left = paddingLeft
-      val top = paddingTop
-      val right = width - paddingRight
-      val bottom = height - paddingBottom
-      var offsetStart = left
-      var offsetEnd = paddingBottom
-      (0 until childCount).map { getChildAt(it) }.filter { it.visibility != View.GONE }.forEach {
-        val childWidth = it.measuredWidth
-        val childHeight = it.measuredHeight
-        val lp = it.layoutParams as LayoutParams
-        if(contentLayer == it){
-          it.layout(left, top, right, bottom)
-        }else if (orientation == HORIZONTAL) {
-          if (lp.gravity == Gravity.START) {
-            offsetStart += lp.leftMargin
-            it.layout(Math.min(left + offsetStart, right), top, Math.min(left + offsetStart + childWidth, right), bottom)
-            offsetStart += childWidth + lp.rightMargin
-          } else {
-            offsetEnd += lp.rightMargin
-            it.layout(Math.max(right - offsetEnd - childWidth, left), top, Math.max(right - offsetEnd, left), bottom)
-            offsetEnd += childWidth + lp.leftMargin
-          }
-        } else {
-          if (lp.gravity == Gravity.START) {
-            offsetStart += lp.topMargin
-            it.layout(left, top, Math.min(right + offsetStart, bottom), Math.min(top + offsetStart + childHeight, bottom))
-            offsetStart += childHeight + lp.bottomMargin
-          } else {
-            offsetEnd += lp.bottomMargin
-            it.layout(left, Math.max(bottom - offsetEnd - childHeight, top), right, Math.max(bottom - offsetEnd, top))
-            offsetEnd += childHeight + lp.topMargin
-          }
-        }
+      when(mode){
+        SMOOTH -> onLayoutSmoothMode()
+        PARALLAX -> onLayoutParallaxMode(parallaxMultiplier)
+        else -> onLayoutDrawerMode()
       }
-      if (orientation == HORIZONTAL){
-        calculatedStartMaxDistance = Math.min(width, offsetStart)
-        calculatedEndMaxDistance = Math.min(width, offsetEnd)
-      }else{
-        calculatedStartMaxDistance = Math.min(height, offsetStart)
-        calculatedEndMaxDistance = Math.min(height, offsetEnd)
+      if (orientation == HORIZONTAL) {
+        calculatedStartMaxDistance = Math.min(width, calculatedStartMaxDistance)
+        calculatedEndMaxDistance = Math.min(width, calculatedEndMaxDistance)
+      } else {
+        calculatedStartMaxDistance = Math.min(height, calculatedStartMaxDistance)
+        calculatedEndMaxDistance = Math.min(height, calculatedEndMaxDistance)
       }
-      behavior?.onLayout(this)
     }
+    behavior?.onLayout(changed, this)
+  }
+
+  private fun onLayoutDrawerMode(){
+    val height = measuredHeight
+    val width = measuredWidth
+    val left = paddingLeft
+    val top = paddingTop
+    val right = width - paddingRight
+    val bottom = height - paddingBottom
+    var offsetStart = left
+    var offsetEnd = paddingBottom
+    (0 until childCount).map { getChildAt(it) }
+        .filter { it.visibility != View.GONE }
+        .forEach {
+          val childWidth = it.measuredWidth
+          val childHeight = it.measuredHeight
+          val lp = it.layoutParams as LayoutParams
+          if (contentLayer == it) {
+            it.layout(left, top, right, bottom)
+          } else if (orientation == HORIZONTAL) {
+            if (lp.gravity == Gravity.START) {
+              offsetStart += lp.leftMargin
+              it.layout(Math.min(left + offsetStart, right), top, Math.min(left + offsetStart + childWidth, right), bottom)
+              offsetStart += childWidth + lp.rightMargin
+            } else {
+              offsetEnd += lp.rightMargin
+              it.layout(Math.max(right - offsetEnd - childWidth, left), top, Math.max(right - offsetEnd, left), bottom)
+              offsetEnd += childWidth + lp.leftMargin
+            }
+          } else {
+            if (lp.gravity == Gravity.START) {
+              offsetStart += lp.topMargin
+              it.layout(left, top, Math.min(right + offsetStart, bottom), Math.min(top + offsetStart + childHeight, bottom))
+              offsetStart += childHeight + lp.bottomMargin
+            } else {
+              offsetEnd += lp.bottomMargin
+              it.layout(left, Math.max(bottom - offsetEnd - childHeight, top), right, Math.max(bottom - offsetEnd, top))
+              offsetEnd += childHeight + lp.topMargin
+            }
+          }
+          calculatedStartMaxDistance = offsetStart
+          calculatedEndMaxDistance = offsetEnd
+        }
+  }
+
+  private fun onLayoutSmoothMode(){
+    onLayoutParallaxMode(1f)
+  }
+
+  private fun onLayoutParallaxMode(multiplier: Float){
+    (0 until childCount)
+        .map { getChildAt(it) }
+        .filter { it.visibility != View.GONE }
+        .forEach {
+          val childWidth = it.measuredWidth
+          val childHeight = it.measuredHeight
+          val lp = it.layoutParams as LayoutParams
+        }
   }
 
   override fun generateLayoutParams(attrs: AttributeSet?): ViewGroup.LayoutParams =
@@ -274,7 +310,7 @@ open class SwipeLayout(context: Context, attrs: AttributeSet? = null) : ViewGrou
 
   @SuppressLint("ClickableViewAccessibility")
   override fun onTouchEvent(event: MotionEvent?): Boolean {
-    if(event?.actionMasked != MotionEvent.ACTION_DOWN){
+    if (event?.actionMasked != MotionEvent.ACTION_DOWN) {
       dragHelper.processTouchEvent(event)
     }
     return true
@@ -295,6 +331,12 @@ open class SwipeLayout(context: Context, attrs: AttributeSet? = null) : ViewGrou
   companion object {
     const val HORIZONTAL = 1
     const val VERTICAL = 0
+
+    const val DRAWER = 0
+    const val SMOOTH = 1
+    const val PARALLAX = 2
+
+    private val DEF_PARALLAX_MULTIPLIER = 0.5f
 
     private val WIDGET_PACKAGE_NAME = SwipeLayout::class.java.`package`.name
     private val sConstructors = ThreadLocal<MutableMap<String, Constructor<SwipeBehavior>>>()
@@ -345,6 +387,7 @@ open class SwipeLayout(context: Context, attrs: AttributeSet? = null) : ViewGrou
         typeArray.recycle()
       }
     }
+
     constructor(width: Int, height: Int) : super(width, height)
   }
 

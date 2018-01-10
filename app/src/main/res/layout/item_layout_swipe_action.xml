@@ -17,6 +17,16 @@
         android:background="@android:color/white"/>
 
     <TextView
+        android:id="@+id/tv_cancel"
+        android:layout_width="45dp"
+        android:layout_height="45dp"
+        android:textColor="@android:color/white"
+        android:text="cancel"
+        android:gravity="center"
+        android:background="@android:color/darker_gray"
+        app:swipe_layout_gravity="end" />
+
+    <TextView
         android:id="@+id/tv_delete"
         android:layout_width="45dp"
         android:layout_height="45dp"

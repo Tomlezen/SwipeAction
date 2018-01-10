@@ -2,6 +2,7 @@ package com.tlz.swipeaction_example
 
 import android.graphics.Rect
 import android.os.Bundle
+import android.support.design.widget.CollapsingToolbarLayout
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
@@ -13,6 +14,7 @@ import android.widget.Toast
 import com.tlz.swipeaction.SwipeActionBehavior
 import com.tlz.swipeaction.SwipeBehavior
 import com.tlz.swipeaction.SwipeDismissBehavior
+import com.tlz.swipeaction.SwipeLayout
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.item_layout_swipe_action.view.*
 
@@ -85,11 +87,13 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onBindViewHolder(holder: ItemViewHolder, position: Int) {
-//      holder.itemView.sl_action.swipeEnable = position < 8
       val item = data[position]
       holder.itemView.tv_content.text = item
       holder.itemView.tv_content.setOnClickListener {
         Log.d(tag, "$position item onClicked")
+      }
+      holder.itemView.tv_cancel.setOnClickListener {
+        ((holder.itemView as? SwipeLayout)?.behavior as? SwipeActionBehavior)?.recover()
       }
       holder.itemView.tv_delete.setOnClickListener {
         data.forEachIndexed { index, s ->
