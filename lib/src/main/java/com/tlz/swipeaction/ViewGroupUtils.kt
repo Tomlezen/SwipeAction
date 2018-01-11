@@ -39,7 +39,8 @@ object ViewGroupUtils {
         (rectF.right + 0.5f).toInt(), (rectF.bottom + 0.5f).toInt())
   }
 
-  internal fun getDescendantRect(parent: ViewGroup, descendant: View, out: Rect) {
+  @JvmStatic
+  fun getDescendantRect(parent: ViewGroup, descendant: View, out: Rect) {
     out.set(0, 0, descendant.width, descendant.height)
     offsetDescendantRect(parent, descendant, out)
   }

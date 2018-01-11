@@ -54,10 +54,11 @@ abstract class SwipeBehavior {
 
   internal fun fraction(startValue: Float, endValue: Float, value: Float): Float = (value - startValue) / (endValue - startValue)
 
-  internal class SettleRunnable internal constructor(private val parent: SwipeLayout, private val view: View, private val endWithAction: () -> Unit) : Runnable {
+  internal class SettleRunnable internal constructor(private val parent: SwipeLayout, private val view: View, private val onSettling: () -> Unit, private val endWithAction: () -> Unit) : Runnable {
 
     override fun run() {
       if (parent.dragHelper.continueSettling(true)) {
+        onSettling()
         ViewCompat.postOnAnimation(view, this)
       } else  {
         endWithAction()

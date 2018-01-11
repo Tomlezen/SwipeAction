@@ -33,7 +33,7 @@ class SwipeDismissBehavior : SwipeBehavior {
   constructor() : super()
   constructor(context: Context, attrs: AttributeSet) : super(context, attrs) {
     val typeArray = context.obtainStyledAttributes(attrs, R.styleable.SwipeLayout)
-    swipeDirection = typeArray.getInteger(R.styleable.SwipeLayout_swipe_dismiss_direction, swipeDirection)
+    swipeDirection = typeArray.getInteger(R.styleable.SwipeLayout_swipe_direction, swipeDirection)
     typeArray.recycle()
   }
 
@@ -75,7 +75,7 @@ class SwipeDismissBehavior : SwipeBehavior {
   override fun onViewReleased(parent: SwipeLayout, child: View, xvel: Float, yvel: Float) {
     var dismiss = false
     val continueSettling: Boolean
-    if(parent.orientation == SwipeLayout.HORIZONTAL){
+    if (parent.orientation == SwipeLayout.HORIZONTAL) {
       val childWidth = child.width
       val targetLeft: Int
       if (shouldHorizontalDismiss(child, xvel)) {
@@ -85,7 +85,7 @@ class SwipeDismissBehavior : SwipeBehavior {
         targetLeft = originalCapturedViewLeft
       }
       continueSettling = parent.dragHelper.settleCapturedViewAt(targetLeft, child.top)
-    }else{
+    } else {
       val childHeight = child.height
       val targetTop: Int
       if (shouldVerticalDismiss(child, yvel)) {
@@ -98,8 +98,8 @@ class SwipeDismissBehavior : SwipeBehavior {
     }
 
     if (continueSettling) {
-      ViewCompat.postOnAnimation(child, SettleRunnable(parent, child, {
-        if(dismiss){
+      ViewCompat.postOnAnimation(child, SettleRunnable(parent, child, {}, {
+        if (dismiss) {
           listener?.onDismiss(child)
         }
       }))
@@ -151,7 +151,7 @@ class SwipeDismissBehavior : SwipeBehavior {
   }
 
   override fun clampViewPositionHorizontal(parent: SwipeLayout, child: View, left: Int, dx: Int): Int {
-    return if(parent.orientation == SwipeLayout.HORIZONTAL){
+    return if (parent.orientation == SwipeLayout.HORIZONTAL) {
       val isRtl = ViewCompat.getLayoutDirection(child) == ViewCompat.LAYOUT_DIRECTION_RTL
       val min: Int
       val max: Int
@@ -178,13 +178,13 @@ class SwipeDismissBehavior : SwipeBehavior {
       }
 
       clamp(left, min, max)
-    }else{
+    } else {
       child.left
     }
   }
 
   override fun clampViewPositionVertical(parent: SwipeLayout, child: View, top: Int, dy: Int): Int {
-    return if(parent.orientation == SwipeLayout.VERTICAL){
+    return if (parent.orientation == SwipeLayout.VERTICAL) {
       val min: Int
       val max: Int
 
@@ -204,12 +204,12 @@ class SwipeDismissBehavior : SwipeBehavior {
       }
 
       clamp(top, min, max)
-    }else{
+    } else {
       child.top
     }
   }
 
-  interface OnDismissListener: Listener {
+  interface OnDismissListener : Listener {
     fun onDismiss(view: View)
   }
 

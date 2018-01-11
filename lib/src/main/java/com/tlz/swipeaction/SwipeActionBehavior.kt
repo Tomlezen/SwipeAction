@@ -7,8 +7,10 @@ import android.support.v4.math.MathUtils
 import android.support.v4.math.MathUtils.clamp
 import android.support.v4.view.ViewCompat
 import android.util.AttributeSet
+import android.view.Gravity
 import android.view.MotionEvent
 import android.view.View
+import android.view.ViewGroup
 
 /**
  * Created by tomlezen.
@@ -36,6 +38,7 @@ class SwipeActionBehavior : SwipeBehavior {
       field = clamp(value, .3f, .8f)
     }
 
+  private var swipeLayout: SwipeLayout? = null
   private var capturedView: View? = null
   private var calculatedMaxStartSwipeDistance = 0
   private var calculatedMaxEndSwipeDistance = 0
@@ -48,7 +51,7 @@ class SwipeActionBehavior : SwipeBehavior {
   constructor() : super()
   constructor(context: Context, attrs: AttributeSet) : super(context, attrs) {
     val typeArray = context.obtainStyledAttributes(attrs, R.styleable.SwipeLayout)
-    swipeDirection = typeArray.getInteger(R.styleable.SwipeLayout_swipe_dismiss_direction, swipeDirection)
+    swipeDirection = typeArray.getInteger(R.styleable.SwipeLayout_swipe_direction, swipeDirection)
     if (typeArray.hasValue(R.styleable.SwipeLayout_swipe_start_max_distance)) {
       maxStartSwipeDistance = try {
         typeArray.getInteger(R.styleable.SwipeLayout_swipe_start_max_distance, AUTO)
@@ -92,6 +95,7 @@ class SwipeActionBehavior : SwipeBehavior {
 
   override fun onViewCaptured(parent: SwipeLayout, child: View) {
     super.onViewCaptured(parent, child)
+    swipeLayout = parent
     capturedView = child
   }
 
@@ -102,29 +106,35 @@ class SwipeActionBehavior : SwipeBehavior {
   override fun onViewReleased(parent: SwipeLayout, child: View, xvel: Float, yvel: Float) {
     isFixed = false
     val continueSettling: Boolean
+    val offsetHelper = child.getViewOffsetHelper()
+    val layoutLeft= offsetHelper.layoutLeft
+    val layoutTop = offsetHelper.layoutTop
     if (parent.orientation == SwipeLayout.HORIZONTAL) {
       val targetLeft: Int
-      if (shouldHorizontalFixed(child, xvel)) {
-        targetLeft = if (child.left < 0) 0 - calculatedMaxEndSwipeDistance else 0 + calculatedMaxStartSwipeDistance
+      if (shouldHorizontalFixed(child, layoutLeft, xvel)) {
+        targetLeft = if (child.left < layoutLeft) layoutLeft - calculatedMaxEndSwipeDistance else layoutLeft + calculatedMaxStartSwipeDistance
         isFixed = true
       } else {
-        targetLeft = 0
+        targetLeft = layoutLeft
       }
       continueSettling = parent.dragHelper.settleCapturedViewAt(targetLeft, child.top)
     } else {
       val targetTop: Int
-      if (shouldVerticalDismiss(child, yvel)) {
-        targetTop = if (child.top < 0) 0 - calculatedMaxEndSwipeDistance else 0 + calculatedMaxStartSwipeDistance
+      if (shouldVerticalDismiss(child, layoutTop, yvel)) {
+        targetTop = if (child.top < layoutTop) layoutTop - calculatedMaxEndSwipeDistance else layoutTop + calculatedMaxStartSwipeDistance
         isFixed = true
       } else {
-        targetTop = 0
+        targetTop = layoutTop
       }
       continueSettling = parent.dragHelper.settleCapturedViewAt(child.left, targetTop)
     }
 
-    val isStart = child.top > 0 || child.left > 0
+    val isStart = child.top > layoutTop || child.left > layoutLeft
     if (continueSettling) {
       ViewCompat.postOnAnimation(child, SettleRunnable(parent, child, {
+        offsetChildViews(parent, child)
+      }, {
+        offsetChildViews(parent, child)
         if (isFixed) {
           callbackOpenedEvent(isStart)
         }
@@ -216,8 +226,80 @@ class SwipeActionBehavior : SwipeBehavior {
   }
 
   override fun onViewPositionChanged(parent: SwipeLayout, child: View, left: Int, top: Int, dx: Int, dy: Int) {
+    offsetChildViews(parent, child)
+  }
+
+  private fun shouldHorizontalFixed(child: View, left: Int, xvel: Float): Boolean {
+    if (xvel != 0f) {
+      val isRtl = ViewCompat.getLayoutDirection(child) == ViewCompat.LAYOUT_DIRECTION_RTL
+
+      when (swipeDirection) {
+        SWIPE_DIRECTION_ANY -> return true
+        SWIPE_DIRECTION_START_TO_END -> return if (isRtl) xvel < 0f else xvel > 0f
+        SWIPE_DIRECTION_END_TO_START -> return if (isRtl) xvel > 0f else xvel < 0f
+        else -> {
+        }
+      }
+    } else {
+      val distance = child.left - left
+      val thresholdDistance = Math.round((if (distance > 0) calculatedMaxStartSwipeDistance else calculatedMaxEndSwipeDistance) * dragFixedThreshold)
+      return Math.abs(distance) >= thresholdDistance
+    }
+
+    return false
+  }
+
+  private fun shouldVerticalDismiss(child: View, top: Int, yvel: Float): Boolean {
+    if (yvel != 0f) {
+      when (swipeDirection) {
+        SWIPE_DIRECTION_ANY -> return true
+        SWIPE_DIRECTION_START_TO_END -> return yvel > 0f
+        SWIPE_DIRECTION_END_TO_START -> return yvel < 0f
+        else -> {
+        }
+      }
+    } else {
+      val distance = child.top - top
+      val thresholdDistance = Math.round((if (distance > 0) calculatedMaxStartSwipeDistance else calculatedMaxEndSwipeDistance) * dragFixedThreshold)
+      return Math.abs(distance) >= thresholdDistance
+    }
+
+    return false
+  }
+
+  private fun offsetChildViews(parent: SwipeLayout, child: View){
+    val childOffsetHelper = child.getViewOffsetHelper()
+    val layoutLeft= childOffsetHelper.layoutLeft
+    val layoutTop = childOffsetHelper.layoutTop
+    val isStart = child.left > layoutLeft || child.top > layoutTop
+    if (parent.mode != SwipeLayout.DRAWER) {
+      val parallaxMultiplier = if (parent.mode == SwipeLayout.PARALLAX) parent.parallaxMultiplier else 1.0f
+      val rDx = Math.round(parallaxMultiplier * childOffsetHelper.getLeftAndRightOffset())
+      val rDy = Math.round(parallaxMultiplier * childOffsetHelper.getTopAndBottomOffset())
+      (0 until parent.childCount)
+          .map { parent.getChildAt(it) }
+          .filter { child != it }
+          .forEach {
+            val gravity = parent.getChildGravity(it)
+            val offsetHelper = it.getViewOffsetHelper()
+            if (isStart && gravity == Gravity.START) {
+              if (rDx != 0) {
+                offsetHelper.setLeftAndRightOffset(rDx)
+              }
+              if (rDy != 0) {
+                offsetHelper.setTopAndBottomOffset(rDy)
+              }
+            } else if (!isStart && gravity == Gravity.END) {
+              if (rDx != 0) {
+                offsetHelper.setLeftAndRightOffset(rDx)
+              }
+              if (rDy != 0) {
+                offsetHelper.setTopAndBottomOffset(rDy)
+              }
+            }
+          }
+    }
     listener?.let {
-      val isStart = child.left > 0 || child.top > 0
       val percent = if (isStart) {
         if (parent.orientation == SwipeLayout.HORIZONTAL) {
           child.left / calculatedMaxStartSwipeDistance.toFloat()
@@ -235,53 +317,19 @@ class SwipeActionBehavior : SwipeBehavior {
     }
   }
 
-  private fun shouldHorizontalFixed(child: View, xvel: Float): Boolean {
-    if (xvel != 0f) {
-      val isRtl = ViewCompat.getLayoutDirection(child) == ViewCompat.LAYOUT_DIRECTION_RTL
-
-      when (swipeDirection) {
-        SWIPE_DIRECTION_ANY -> return true
-        SWIPE_DIRECTION_START_TO_END -> return if (isRtl) xvel < 0f else xvel > 0f
-        SWIPE_DIRECTION_END_TO_START -> return if (isRtl) xvel > 0f else xvel < 0f
-        else -> {
-        }
-      }
-    } else {
-      val distance = child.left - 0
-      val thresholdDistance = Math.round((if (child.left > 0) calculatedMaxStartSwipeDistance else calculatedMaxEndSwipeDistance) * dragFixedThreshold)
-      return Math.abs(distance) >= thresholdDistance
-    }
-
-    return false
-  }
-
-  private fun shouldVerticalDismiss(child: View, yvel: Float): Boolean {
-    if (yvel != 0f) {
-      when (swipeDirection) {
-        SWIPE_DIRECTION_ANY -> return true
-        SWIPE_DIRECTION_START_TO_END -> return yvel > 0f
-        SWIPE_DIRECTION_END_TO_START -> return yvel < 0f
-        else -> {
-        }
-      }
-    } else {
-      val distance = child.top - 0
-      val thresholdDistance = Math.round((if (child.top > 0) calculatedMaxStartSwipeDistance else calculatedMaxEndSwipeDistance) * dragFixedThreshold)
-      return Math.abs(distance) >= thresholdDistance
-    }
-
-    return false
-  }
-
-  private fun recover(child: View) {
-    val isStart = child.top > 0 || child.left > 0
+  private fun recover(parent: SwipeLayout, child: View) {
+    val offsetHelper = child.getViewOffsetHelper()
+    val layoutLeft = offsetHelper.layoutLeft
+    val layoutTop = offsetHelper.layoutLeft
+    val isStart = child.top > layoutTop || child.left > layoutLeft
     ValueAnimator.ofFloat(0f, 1f).apply {
       duration = DEFAULT_ANIMATOR_DURATION
       addUpdateListener {
         if (!isDetached) {
           val value = animatedValue as Float
-          ViewCompat.offsetLeftAndRight(child, ((0 - child.left) * value).toInt())
-          ViewCompat.offsetTopAndBottom(child, ((0 - child.top) * value).toInt())
+          ViewCompat.offsetLeftAndRight(child, ((layoutLeft - child.left) * value).toInt())
+          ViewCompat.offsetTopAndBottom(child, ((layoutTop - child.top) * value).toInt())
+          offsetChildViews(parent, child)
         }
       }
       animatorListener.isStart = isStart
@@ -293,8 +341,8 @@ class SwipeActionBehavior : SwipeBehavior {
    * revert to the original location.
    */
   fun recover() {
-    if (isFixed && !isRecovery && capturedView?.isShown == true) {
-      recover(capturedView!!)
+    if (isFixed && !isRecovery && swipeLayout?.visibility == View.VISIBLE && capturedView?.visibility == View.VISIBLE) {
+      recover(swipeLayout!!, capturedView!!)
     }
   }
 

@@ -2,7 +2,6 @@ package com.tlz.swipeaction_example
 
 import android.graphics.Rect
 import android.os.Bundle
-import android.support.design.widget.CollapsingToolbarLayout
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
@@ -38,7 +37,7 @@ class MainActivity : AppCompatActivity() {
         }
       }
     }
-    (sl_action_behavior.behavior as? SwipeActionBehavior)?.let {
+    (sl_drawer.behavior as? SwipeActionBehavior)?.let {
       it.listener = object : SwipeActionBehavior.OnActionListener{
 
         override fun onDragPercent(direction: Int, percent: Int) {
@@ -63,12 +62,12 @@ class MainActivity : AppCompatActivity() {
       Toast.makeText(this, "content onClicked", Toast.LENGTH_LONG).show()
     }
     tv_cancel.setOnClickListener {
-      (sl_action_behavior.behavior as? SwipeActionBehavior)?.recover()
+      (sl_drawer.behavior as? SwipeActionBehavior)?.recover()
       Log.d(tag, "cancel onClicked")
       Toast.makeText(this, "cancel onClicked", Toast.LENGTH_LONG).show()
     }
     tv_delete.setOnClickListener {
-      (sl_action_behavior.behavior as? SwipeActionBehavior)?.recover()
+      (sl_drawer.behavior as? SwipeActionBehavior)?.recover()
       Log.d(tag, "delete onClicked")
       Toast.makeText(this, "delete onClicked", Toast.LENGTH_LONG).show()
     }

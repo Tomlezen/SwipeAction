@@ -7,7 +7,7 @@
     android:layout_height="wrap_content"
     app:swipe_behavior="com.tlz.swipeaction.SwipeActionBehavior"
     app:swipe_enable="true"
-    app:swipe_dismiss_direction="endToStart">
+    app:swipe_direction="endToStart">
 
     <TextView
         android:id="@+id/tv_content"
@@ -23,7 +23,7 @@
         android:textColor="@android:color/white"
         android:text="cancel"
         android:gravity="center"
-        android:background="@android:color/darker_gray"
+        android:background="@android:color/holo_blue_light"
         app:swipe_layout_gravity="end" />
 
     <TextView

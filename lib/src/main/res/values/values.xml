@@ -1,6 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
+    <string name="app_name">lib</string>
+
+    <item name="swipe_key_gravity" type="id" />
+    <item name="swipe_key_offset_helper" type="id" />
+
     <declare-styleable name="SwipeLayout">
         <attr name="swipe_orientation" format="enum">
             <enum name="horizontal" value="1" />
@@ -19,7 +24,7 @@
             <enum name="start" value="8388611" />
             <enum name="end" value="8388613" />
         </attr>
-        <attr name="swipe_dismiss_direction" format="enum">
+        <attr name="swipe_direction" format="enum">
             <enum name="any" value="2" />
             <enum name="endToStart" value="1" />
             <enum name="startToEnd" value="2" />
