@@ -1,3 +1,5 @@
+<img src="https://github.com/tomlezen/SwipeAction/tree/master/screenshot/media.gif" alt="arc" style="max-width:100%;">
+
 ## Gradle
 
 ```
