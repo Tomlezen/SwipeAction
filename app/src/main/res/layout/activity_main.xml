@@ -6,6 +6,11 @@
     android:orientation="vertical"
     android:gravity="center">
 
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="@string/app_name"/>
+
     <com.tlz.swipeaction.SwipeLayout
         android:id="@+id/sl_dismiss_behavior"
         android:layout_width="match_parent"
@@ -45,7 +50,7 @@
             android:gravity="center"
             android:text="drawer mode"
             android:padding="20dp"
-            android:background="@android:color/holo_red_light" />
+            android:background="?attr/selectableItemBackground" />
 
         <TextView
             android:id="@+id/tv_cancel"
@@ -67,6 +72,7 @@
             android:textColor="@android:color/white"
             android:text="delete"
             android:gravity="center"
+            android:background="@android:color/white"
             app:swipe_layout_gravity="end" />
 
     </com.tlz.swipeaction.SwipeLayout>
@@ -90,8 +96,7 @@
             android:textColor="@android:color/white"
             android:gravity="center"
             android:text="parallax mode"
-            android:padding="20dp"
-            android:background="@android:color/holo_red_light" />
+            android:padding="20dp" />
 
         <TextView
             android:layout_width="wrap_content"
@@ -119,7 +124,7 @@
         android:id="@+id/sl_smooth"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/colorPrimary"
+        android:background="@android:color/holo_red_light"
         android:layout_marginTop="1dp"
         app:swipe_mode="smooth"
         app:swipe_direction="any"
@@ -134,7 +139,7 @@
             android:gravity="center"
             android:text="smooth mode"
             android:padding="20dp"
-            android:background="@android:color/holo_red_light" />
+            android:background="?attr/selectableItemBackground" />
 
         <TextView
             android:layout_width="wrap_content"
@@ -152,6 +157,7 @@
             android:paddingLeft="10dp"
             android:paddingRight="10dp"
             android:textColor="@android:color/white"
+            android:background="@android:color/white"
             android:text="delete"
             android:gravity="center"
             app:swipe_layout_gravity="end" />

@@ -202,8 +202,9 @@ class SwipeLayout(context: Context, attrs: AttributeSet? = null) : ViewGroup(con
         calculatedStartMaxDistance = Math.min(height, calculatedStartMaxDistance)
         calculatedEndMaxDistance = Math.min(height, calculatedEndMaxDistance)
       }
+
+      (0 until childCount).map { getChildAt(it) }.map { it.getViewOffsetHelper() }.forEach { it.onViewLayout() }
     }
-    (0 until childCount).map { getChildAt(it) }.map { it.getViewOffsetHelper() }.forEach { it.onViewLayout() }
     behavior?.onLayout(changed, this)
   }
 
@@ -258,7 +259,7 @@ class SwipeLayout(context: Context, attrs: AttributeSet? = null) : ViewGroup(con
               totalEnd += lp.topMargin
             }
           }
-          layoutPairs.put(it, Pair(first, second))
+          layoutPairs[it] = Pair(first, second)
         }
     val left: Int
     val top: Int

@@ -320,7 +320,7 @@ class SwipeActionBehavior : SwipeBehavior {
   private fun recover(parent: SwipeLayout, child: View) {
     val offsetHelper = child.getViewOffsetHelper()
     val layoutLeft = offsetHelper.layoutLeft
-    val layoutTop = offsetHelper.layoutLeft
+    val layoutTop = offsetHelper.layoutTop
     val isStart = child.top > layoutTop || child.left > layoutLeft
     ValueAnimator.ofFloat(0f, 1f).apply {
       duration = DEFAULT_ANIMATOR_DURATION
@@ -328,6 +328,8 @@ class SwipeActionBehavior : SwipeBehavior {
         if (!isDetached) {
           val value = animatedValue as Float
           ViewCompat.offsetLeftAndRight(child, ((layoutLeft - child.left) * value).toInt())
+          println(child.left)
+          println(child.paddingRight)
           ViewCompat.offsetTopAndBottom(child, ((layoutTop - child.top) * value).toInt())
           offsetChildViews(parent, child)
         }
