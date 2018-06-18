@@ -107,7 +107,7 @@ class SwipeActionBehavior : SwipeBehavior {
     isFixed = false
     val continueSettling: Boolean
     val offsetHelper = child.getViewOffsetHelper()
-    val layoutLeft= offsetHelper.layoutLeft
+    val layoutLeft = offsetHelper.layoutLeft
     val layoutTop = offsetHelper.layoutTop
     if (parent.orientation == SwipeLayout.HORIZONTAL) {
       val targetLeft: Int
@@ -120,7 +120,7 @@ class SwipeActionBehavior : SwipeBehavior {
       continueSettling = parent.dragHelper.settleCapturedViewAt(targetLeft, child.top)
     } else {
       val targetTop: Int
-      if (shouldVerticalDismiss(child, layoutTop, yvel)) {
+      if (shouldVerticalFixed(child, layoutTop, yvel)) {
         targetTop = if (child.top < layoutTop) layoutTop - calculatedMaxEndSwipeDistance else layoutTop + calculatedMaxStartSwipeDistance
         isFixed = true
       } else {
@@ -249,7 +249,7 @@ class SwipeActionBehavior : SwipeBehavior {
     return false
   }
 
-  private fun shouldVerticalDismiss(child: View, top: Int, yvel: Float): Boolean {
+  private fun shouldVerticalFixed(child: View, top: Int, yvel: Float): Boolean {
     if (yvel != 0f) {
       when (swipeDirection) {
         SWIPE_DIRECTION_ANY -> return true
@@ -267,35 +267,30 @@ class SwipeActionBehavior : SwipeBehavior {
     return false
   }
 
-  private fun offsetChildViews(parent: SwipeLayout, child: View){
+  private fun offsetChildViews(parent: SwipeLayout, child: View) {
     val childOffsetHelper = child.getViewOffsetHelper()
-    val layoutLeft= childOffsetHelper.layoutLeft
+    val layoutLeft = childOffsetHelper.layoutLeft
     val layoutTop = childOffsetHelper.layoutTop
     val isStart = child.left > layoutLeft || child.top > layoutTop
     if (parent.mode != SwipeLayout.DRAWER) {
       val parallaxMultiplier = if (parent.mode == SwipeLayout.PARALLAX) parent.parallaxMultiplier else 1.0f
       val rDx = Math.round(parallaxMultiplier * childOffsetHelper.getLeftAndRightOffset())
       val rDy = Math.round(parallaxMultiplier * childOffsetHelper.getTopAndBottomOffset())
+      println(rDx)
       (0 until parent.childCount)
           .map { parent.getChildAt(it) }
           .filter { child != it }
           .forEach {
             val gravity = parent.getChildGravity(it)
             val offsetHelper = it.getViewOffsetHelper()
-            if (isStart && gravity == Gravity.START) {
-              if (rDx != 0) {
-                offsetHelper.setLeftAndRightOffset(rDx)
-              }
-              if (rDy != 0) {
-                offsetHelper.setTopAndBottomOffset(rDy)
-              }
-            } else if (!isStart && gravity == Gravity.END) {
-              if (rDx != 0) {
-                offsetHelper.setLeftAndRightOffset(rDx)
-              }
-              if (rDy != 0) {
-                offsetHelper.setTopAndBottomOffset(rDy)
-              }
+            // 这块的逻辑感觉还存在点问题
+            if ((isStart && gravity == Gravity.START) || (!isStart && gravity == Gravity.END)) {
+              offsetHelper.setLeftAndRightOffset(rDx)
+              offsetHelper.setTopAndBottomOffset(rDy)
+            } else if (rDx == 0) {
+              offsetHelper.setLeftAndRightOffset(rDx)
+            } else if (rDy == 0) {
+              offsetHelper.setLeftAndRightOffset(rDx)
             }
           }
     }
@@ -328,8 +323,6 @@ class SwipeActionBehavior : SwipeBehavior {
         if (!isDetached) {
           val value = animatedValue as Float
           ViewCompat.offsetLeftAndRight(child, ((layoutLeft - child.left) * value).toInt())
-          println(child.left)
-          println(child.paddingRight)
           ViewCompat.offsetTopAndBottom(child, ((layoutTop - child.top) * value).toInt())
           offsetChildViews(parent, child)
         }
