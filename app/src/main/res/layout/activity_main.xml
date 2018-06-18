@@ -6,6 +6,11 @@
     android:gravity="center"
     android:orientation="vertical">
 
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="测试呢"/>
+
     <com.tlz.swipeaction.SwipeLayout
         android:id="@+id/sl_dismiss_behavior"
         android:layout_width="match_parent"
