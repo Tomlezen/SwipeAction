@@ -335,7 +335,12 @@ class SwipeActionBehavior : SwipeBehavior {
   /**
    * revert to the original location.
    */
+  @Deprecated("", ReplaceWith("close()"))
   fun recover() {
+    close()
+  }
+
+  fun close() {
     if (isFixed && !isRecovery && swipeLayout?.visibility == View.VISIBLE && capturedView?.visibility == View.VISIBLE) {
       recover(swipeLayout!!, capturedView!!)
     }
@@ -373,19 +378,17 @@ class SwipeActionBehavior : SwipeBehavior {
   }
 
   override fun onDetached() {
-    capturedView = null
     isDetached = true
-    isFixed = false
-    isRecovery = false
-    listener = null
   }
 
   private fun callbackOpenedEvent(isStart: Boolean) {
-    listener?.let {
-      if (isStart) {
-        it.onOpen(START)
-      } else {
-        it.onOpen(END)
+    if (!isDetached) {
+      listener?.let {
+        if (isStart) {
+          it.onOpen(START)
+        } else {
+          it.onOpen(END)
+        }
       }
     }
   }

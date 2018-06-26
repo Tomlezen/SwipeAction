@@ -92,7 +92,7 @@ class MainActivity : AppCompatActivity() {
         Log.d(tag, "$position item onClicked")
       }
       holder.itemView.tv_cancel.setOnClickListener {
-        ((holder.itemView as? SwipeLayout)?.behavior as? SwipeActionBehavior)?.recover()
+        ((holder.itemView as? SwipeLayout)?.behavior as? SwipeActionBehavior)?.close()
       }
       holder.itemView.tv_delete.setOnClickListener {
         data.forEachIndexed { index, s ->

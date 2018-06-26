@@ -25,7 +25,7 @@ class SwipeViewOffsetHelper(private val view: View) {
     updateOffsets()
   }
 
-  private fun updateOffsets() {
+  fun updateOffsets() {
     ViewCompat.offsetTopAndBottom(view, offsetTop - (view.top - layoutTop))
     ViewCompat.offsetLeftAndRight(view, offsetLeft - (view.left - layoutLeft))
   }

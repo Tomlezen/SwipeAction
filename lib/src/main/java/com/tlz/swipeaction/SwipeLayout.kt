@@ -77,13 +77,16 @@ class SwipeLayout(context: Context, attrs: AttributeSet? = null) : ViewGroup(con
         child?.let { behavior?.getViewVerticalDragRange(this@SwipeLayout, it) } ?: 0
 
     override fun clampViewPositionHorizontal(child: View?, left: Int, dx: Int): Int =
-        child?.let { behavior?.clampViewPositionHorizontal(this@SwipeLayout, it, left, dx) } ?: super.clampViewPositionHorizontal(child, left, dx)
+        child?.let { behavior?.clampViewPositionHorizontal(this@SwipeLayout, it, left, dx) }
+            ?: super.clampViewPositionHorizontal(child, left, dx)
 
     override fun clampViewPositionVertical(child: View?, top: Int, dy: Int): Int =
-        child?.let { behavior?.clampViewPositionVertical(this@SwipeLayout, it, top, dy) } ?: super.clampViewPositionVertical(child, top, dy)
+        child?.let { behavior?.clampViewPositionVertical(this@SwipeLayout, it, top, dy) }
+            ?: super.clampViewPositionVertical(child, top, dy)
 
     override fun onViewPositionChanged(changedView: View?, left: Int, top: Int, dx: Int, dy: Int) {
-      changedView?.let { behavior?.onViewPositionChanged(this@SwipeLayout, it, left, top, dx, dy) } ?: super.onViewPositionChanged(changedView, left, top, dx, dy)
+      changedView?.let { behavior?.onViewPositionChanged(this@SwipeLayout, it, left, top, dx, dy) }
+          ?: super.onViewPositionChanged(changedView, left, top, dx, dy)
     }
   }
 
@@ -204,6 +207,8 @@ class SwipeLayout(context: Context, attrs: AttributeSet? = null) : ViewGroup(con
       }
 
       (0 until childCount).map { getChildAt(it) }.map { it.getViewOffsetHelper() }.forEach { it.onViewLayout() }
+    } else {
+      (0 until childCount).map { getChildAt(it) }.map { it.getViewOffsetHelper() }.forEach { it.updateOffsets() }
     }
     behavior?.onLayout(changed, this)
   }
